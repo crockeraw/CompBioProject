@@ -16,8 +16,12 @@ adata.obs["subject"] = pd.Categorical(meta["Sample.name"])
 adata_cnv = sc.read("source-data/CNA_matrix.csv",first_column_names=True)
 adata_cnv = adata_cnv.T
 
-# Subset transcriptomic adata object to include only subjects that passed QC in copyKAT
+# Subset transcriptomic adata object to include only subjects and genes that passed QC in copyKAT
 adata = adata[adata.obs_names.isin(adata_cnv.obs_names.str[1:]),:]
+adata = adata[:, adata.var_names.isin(adata_cnv.var_names)]
+
+# Set index in adata object to match cnv data (ordered by chr position)
+adata.var = adata.var.reindex(adata_cnv.var.index)
 
 # Annoate transcriptomic adata object with CNV information
 adata.obsm["CNV"] = adata_cnv.X
